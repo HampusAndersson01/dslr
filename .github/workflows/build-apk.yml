@@ -30,13 +30,6 @@ jobs:
         with:
           gradle-version: '8.13'
 
-      - name: Vendor Nikon PTP engine
-        run: |
-          git clone --depth 1 https://github.com/michaelzoech/remoteyourcam-usb.git /tmp/remoteyourcam
-          mkdir -p app/src/main/java/com/remoteyourcam/usb/ptp
-          rsync -a --exclude='PtpUsbService.java' --exclude='WorkerNotifier.java' /tmp/remoteyourcam/src/com/remoteyourcam/usb/ptp/ app/src/main/java/com/remoteyourcam/usb/ptp/
-          cp /tmp/remoteyourcam/LICENSE REMOTEYOURCAM-LICENSE.txt || true
-
       - name: Build debug APK
         run: gradle :app:assembleDebug --stacktrace
 
