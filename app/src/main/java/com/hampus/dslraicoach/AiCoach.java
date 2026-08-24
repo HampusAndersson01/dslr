@@ -58,8 +58,11 @@ public final class AiCoach {
                 cameraData + "\n" + metrics + "\n" + preferenceMemory;
         worker.execute(() -> {
             try {
-                GenerateContentRequest request = new GenerateContentRequest.Builder(new ImagePart(input), new TextPart(prompt))
-                        .setTemperature(0.25f).setMaxOutputTokens(700).build();
+                GenerateContentRequest.Builder requestBuilder =
+                        new GenerateContentRequest.Builder(new ImagePart(input), new TextPart(prompt));
+                requestBuilder.setTemperature(0.25f);
+                requestBuilder.setMaxOutputTokens(700);
+                GenerateContentRequest request = requestBuilder.build();
                 GenerateContentResponse response = model.generateContent(request).get();
                 String text = response.getCandidates().isEmpty() ? "The local AI returned no critique." : response.getCandidates().get(0).getText();
                 main.post(() -> callback.onResult(text));
