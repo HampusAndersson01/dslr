@@ -7,13 +7,15 @@ plugins {
 def ptpCommit = '7d1b44f5b2ef8bf39b4f3e6390af98ab57b77d05'
 def generatedPtpDir = file("$buildDir/generated/sources/remoteyourcam")
 def ptpZip = file("$buildDir/vendor/remoteyourcam-${ptpCommit}.zip")
+def ptpPatchLevel = 'v4'
 
 tasks.register('vendorPtpSources') {
     outputs.dir(generatedPtpDir)
 
     doLast {
         def marker = new File(generatedPtpDir, '.upstream-commit')
-        if (marker.exists() && marker.text.trim() == ptpCommit) {
+        def expectedMarker = "${ptpCommit}:${ptpPatchLevel}"
+        if (marker.exists() && marker.text.trim() == expectedMarker) {
             return
         }
 
@@ -32,6 +34,10 @@ tasks.register('vendorPtpSources') {
             from(zipTree(ptpZip)) {
                 include "remoteyourcam-usb-${ptpCommit}/src/com/remoteyourcam/usb/ptp/**/*.java"
                 exclude '**/PtpUsbService.java'
+                exclude '**/NikonEventCheckCommand.java'
+                exclude '**/NikonGetLiveViewImageCommand.java'
+                exclude '**/NikonOpenSessionAction.java'
+                exclude '**/NikonStartLiveViewAction.java'
                 exclude '**/WorkerNotifier.java'
                 eachFile { details ->
                     details.path = details.path.replaceFirst(
@@ -44,7 +50,7 @@ tasks.register('vendorPtpSources') {
             into generatedPtpDir
         }
 
-        marker.text = ptpCommit
+        marker.text = expectedMarker
     }
 }
 
@@ -84,4 +90,5 @@ tasks.configureEach { task ->
 
 dependencies {
     implementation 'com.google.mlkit:genai-prompt:1.0.0-beta4'
+    testImplementation 'junit:junit:4.13.2'
 }

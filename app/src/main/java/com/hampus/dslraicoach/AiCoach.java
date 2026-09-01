@@ -53,8 +53,8 @@ public final class AiCoach {
         if (!ready) { callback.onResult("On-device AI is not ready yet.\n\n" + preferenceMemory); return; }
         Bitmap input = downscale(bitmap, 1280);
         String prompt = "You are a demanding but practical professional photography coach. Analyze this DSLR photograph. " +
-                "Use measured data when relevant. Return concise plain text with headings exactly: SCORE, WHAT WORKS, FIX NEXT SHOT, CAMERA SETTINGS, COMPOSITION. " +
-                "SCORE must be /10. Under FIX NEXT SHOT give the three highest-value concrete actions. Do not invent exact measurements not supplied.\n\n" +
+                "Use measured data when relevant. Return concise Markdown with headings exactly: ## Score, ## What works, ## Fix next shot, ## Camera settings, ## Composition. " +
+                "Score must be /10. Under Fix next shot give the three highest-value concrete actions as bullets. Do not invent exact measurements not supplied.\n\n" +
                 cameraData + "\n" + metrics + "\n" + preferenceMemory;
         worker.execute(() -> {
             try {

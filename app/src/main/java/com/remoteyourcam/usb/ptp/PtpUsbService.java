@@ -15,6 +15,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 
+import com.hampus.dslraicoach.camera.DslrNikonCamera;
 import com.remoteyourcam.usb.ptp.Camera.CameraListener;
 
 import java.util.Map;
@@ -123,7 +124,7 @@ public class PtpUsbService implements PtpService {
                 continue;
             }
             PtpUsbConnection ptpConnection = new PtpUsbConnection(connection, bulkIn, bulkOut, device.getVendorId(), device.getProductId());
-            camera = new NikonCamera(ptpConnection, listener, workerListener);
+            camera = new DslrNikonCamera(ptpConnection, listener, workerListener);
             return true;
         }
         if (listener != null) listener.onError("Nikon found, but no compatible PTP interface could be claimed");
