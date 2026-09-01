@@ -1,0 +1,94 @@
+plugins {
+    id 'com.android.application'
+}
+
+// Nikon/PTP support is vendored automatically from a pinned upstream commit so
+// Android Studio and CI build the exact same source tree.
+def ptpCommit = '7d1b44f5b2ef8bf39b4f3e6390af98ab57b77d05'
+def generatedPtpDir = file("$buildDir/generated/sources/remoteyourcam")
+def ptpZip = file("$buildDir/vendor/remoteyourcam-${ptpCommit}.zip")
+def ptpPatchLevel = 'v4'
+
+tasks.register('vendorPtpSources') {
+    outputs.dir(generatedPtpDir)
+
+    doLast {
+        def marker = new File(generatedPtpDir, '.upstream-commit')
+        def expectedMarker = "${ptpCommit}:${ptpPatchLevel}"
+        if (marker.exists() && marker.text.trim() == expectedMarker) {
+            return
+        }
+
+        delete(generatedPtpDir)
+        generatedPtpDir.mkdirs()
+        ptpZip.parentFile.mkdirs()
+
+        if (!ptpZip.exists()) {
+            logger.lifecycle("Downloading Nikon PTP source ${ptpCommit}…")
+            new URL("https://github.com/michaelzoech/remoteyourcam-usb/archive/${ptpCommit}.zip").withInputStream { input ->
+                ptpZip.withOutputStream { output -> output << input }
+            }
+        }
+
+        copy {
+            from(zipTree(ptpZip)) {
+                include "remoteyourcam-usb-${ptpCommit}/src/com/remoteyourcam/usb/ptp/**/*.java"
+                exclude '**/PtpUsbService.java'
+                exclude '**/NikonEventCheckCommand.java'
+                exclude '**/NikonGetLiveViewImageCommand.java'
+                exclude '**/NikonOpenSessionAction.java'
+                exclude '**/NikonStartLiveViewAction.java'
+                exclude '**/WorkerNotifier.java'
+                eachFile { details ->
+                    details.path = details.path.replaceFirst(
+                            "^remoteyourcam-usb-${ptpCommit}/src/",
+                            ''
+                    )
+                }
+                includeEmptyDirs = false
+            }
+            into generatedPtpDir
+        }
+
+        marker.text = expectedMarker
+    }
+}
+
+android {
+    namespace 'com.hampus.dslraicoach'
+    compileSdk 36
+
+    defaultConfig {
+        applicationId 'com.hampus.dslraicoach'
+        minSdk 26
+        targetSdk 36
+        versionCode 1
+        versionName '0.1.0'
+    }
+
+    sourceSets {
+        main.java.srcDir generatedPtpDir
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+    }
+}
+
+tasks.configureEach { task ->
+    if (task.name.startsWith('compile') && task.name.endsWith('JavaWithJavac')) {
+        task.dependsOn tasks.named('vendorPtpSources')
+    }
+}
+
+dependencies {
+    implementation 'com.google.mlkit:genai-prompt:1.0.0-beta4'
+    testImplementation 'junit:junit:4.13.2'
+}

@@ -1,0 +1,30 @@
+# Android / Gradle build output
+.gradle/
+build/
+*/build/
+
+# Local Android SDK / machine config
+local.properties
+
+# IDE files
+.idea/
+*.iml
+
+# Generated signing and release artifacts
+*.jks
+*.keystore
+*.apk
+*.aab
+
+# Logs and crash output
+*.log
+hs_err_pid*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Local ADB/UI QA artifacts generated from manual device testing
+/qa*.png
+/qa*.xml
+/app-ui*.png
